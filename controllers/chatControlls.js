@@ -4,6 +4,8 @@ import User from "../models/User.js"
 export const accessthechat = async (req, res) => {
     const {userId}=req.body
     if(!userId) return res.status(400).json({message:'user id is required'})
+    const userEx=await User.findOne({_id:userId})
+    if(!userEx) return res.status(400).json({message:'user does not exist'})
     var isTheChat=await Chat.find({
         isGroupChat:false,$and:[
             {users:{$elemMatch:{$eq:req.user.id}}},

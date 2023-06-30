@@ -14,6 +14,9 @@ const User= mongoose.model(
         password:{
             type:String,
             required:true
+        },
+        otp:{
+            type:String,
         }
     },
     {
