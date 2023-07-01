@@ -28,7 +28,7 @@ export const login = async (req, res) => {
         if(!theUser) return res.status(400).json({message:'user does not exist'})
         const match=await bcrypt.compare(password,theUser.password)
         if(!match) return res.status(400).json({message:'incorrect password'})
-        const token=jwt.sign({id:theUser._id},process.env.JWT_SECRET,{expiresIn:'1h'})
+        const token=jwt.sign({id:theUser._id},process.env.JWT_SECRET,{expiresIn:'30d'})
         res.header("auth-token", token).json({ message: "login successfully", token: token });
     } catch (error) {
         res.status(500).json({message:error.message})
