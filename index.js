@@ -23,13 +23,13 @@ app.get('/', (req, res) => {
     }
 );
 connectDB();
-const PORT = process.env.PORT || 6060;
+const PORT = process.env.PORT || 9000;
 const server=app.listen(PORT, () => console.log(`Server Started on port ${PORT} 🚀`))
 
 const io = new Server(server, {
     pingTimeout: 60000,
     cors: {
-        origin: 'http://localhost:3000',
+        origin: 'http://192.168.1.40:3000',
     }
 });
 
