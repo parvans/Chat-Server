@@ -45,15 +45,9 @@ io.on('connection', (socket) => {
         console.log('User Joined Room :',room);
     });
 
-    socket.on('typing', (room) =>{
-        socket.in(room).emit('typing')
-        console.log('User Typing :',room);
-    });
-    socket.on('stop typing', (room) =>{
-        socket.in(room).emit('stop typing')
-        console.log('User Stopped Typing :',room);
-    }
-        );
+    socket.on('typing', (room) =>socket.in(room).emit('typing'));
+    
+    socket.on('stop typing', (room) =>socket.in(room).emit('stop typing'));
 
     socket.on('new message', (newMessage) => {
         var chat = newMessage.chat;
