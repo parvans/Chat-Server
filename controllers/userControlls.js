@@ -140,3 +140,15 @@ export const resetPassword = async (req, res) => {
 
     }
 }
+
+export const userEdit = async (req, res) => {
+    const userId = req.user.id
+    try {
+        const userExist = await User.findById(userId)
+        if (!userExist) return res.status(400).json({ message: "User does not exist" })
+        await User.findByIdAndUpdate({ _id: userId },{ $set: req.body },{ new: true })
+        res.status(200).json({ message: "User updated successfully" })
+    } catch (error) {
+        return res.status(400).json({message:error.message})
+    }
+}

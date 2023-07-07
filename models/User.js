@@ -17,7 +17,11 @@ const User= mongoose.model(
         },
         otp:{
             type:String,
-        }
+        },
+        isOnline:{
+            type:Boolean,
+            default:false
+        }, 
     },
     {
         timestamps:true

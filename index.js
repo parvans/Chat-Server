@@ -11,6 +11,8 @@ import { Server } from 'socket.io';
 dotenv.config();
 const app = express();
 
+const users={};
+
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
@@ -29,7 +31,7 @@ const server=app.listen(PORT, () => console.log(`Server Started on port ${PORT} 
 const io = new Server(server, {
     pingTimeout: 60000,
     cors: {
-        origin: 'http://192.168.1.40:3000',
+        origin: 'http://192.168.1.41:3000',
     }
 });
 
@@ -37,8 +39,16 @@ io.on('connection', (socket) => {
     console.log('Socket connected 🔥');
     socket.on('setup',(userData)=>{
         socket.join(userData.id);
-        socket.emit('connected');
+        console.log(`a user ${userData.id} is connected`);
+        users[socket.id]=userData.id
+        console.log(users);
+        // users?.map((item)=>{
+        //     console.log(item);
+        // })
+        socket.emit('connected')
     })
+
+    
 
     socket.on('join room', (room) => {
         socket.join(room)
@@ -67,7 +77,15 @@ io.on('connection', (socket) => {
 
     socket.off('setup', () => {
         console.log('Socket disconnected 🔥');
+        socket.emit('updateUserStatus',users);
         socket.leave(userData.id);
     });
+
+    socket.on('disconnect', function(){
+        console.log('user ' + users[socket.id] + ' disconnected');
+        // remove saved socket from users object
+        delete users[socket.id];
+      });
+
     
 });
