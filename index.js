@@ -11,7 +11,7 @@ import { Server } from 'socket.io';
 dotenv.config();
 const app = express();
 
-const users={};
+let users=[];
 
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -39,12 +39,14 @@ io.on('connection', (socket) => {
     console.log('Socket connected 🔥');
     socket.on('setup',(userData)=>{
         socket.join(userData.id);
-        console.log(`a user ${userData.id} is connected`);
-        users[socket.id]=userData.id
-        console.log(users);
-        // users?.map((item)=>{
-        //     console.log(item);
-        // })
+
+        if(!users.some(user => user.userId === userData.id)){
+            users.push({userId: userData.id, socketId: socket.id});
+            console.log("New User is here",users);
+        }
+        // console.log(socket.id);
+
+        io.emit('get-users',users);
         socket.emit('connected')
     })
 
@@ -81,11 +83,17 @@ io.on('connection', (socket) => {
         socket.leave(userData.id);
     });
 
-    socket.on('disconnect', function(){
-        console.log('user ' + users[socket.id] + ' disconnected');
-        // remove saved socket from users object
-        delete users[socket.id];
-      });
+    socket.on('disconnect', ()=>{
+        console.log(socket.id);
+        users=users.filter((user) => user.socketId !== socket.id);
+        // console.log("User is disconnected",users);
+        io.emit('get-users',users);
+    });
 
+    socket.on('offline',()=>{
+        users=users.filter((user) => user.socketId !== socket.id);
+        // console.log("User is offline",users);
+        io.emit('get-users',users);
+    })
     
 });
