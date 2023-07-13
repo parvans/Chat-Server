@@ -35,3 +35,17 @@ export const allMessage = async (req, res) => {
         return res.status(500).json({message:error})
     }
 }
+
+export const editMessage = async (req, res) => {
+    const {id}=req.params
+    try {
+        const existMessage=await Message.findById(id)
+        if(!existMessage){
+            return res.status(404).json({message:'Message Not Found'})
+        }
+        await Message.findByIdAndUpdate(id,{$set:req.body},{new:true})
+        return res.status(200).json({message:'Message Updated Successfully'})
+    } catch (error) {
+        return res.status(500).json({message:error})
+    }
+}

@@ -15,6 +15,18 @@ const Message = mongoose.model(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chat",
     },
+    isPending: {
+      type: Boolean,
+      default: true,
+    },
+    isSend: {
+      type: Boolean,
+      default: false,
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
