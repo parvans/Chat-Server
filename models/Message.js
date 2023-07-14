@@ -15,17 +15,10 @@ const Message = mongoose.model(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chat",
     },
-    isPending: {
-      type: Boolean,
-      default: true,
-    },
-    isSend: {
-      type: Boolean,
-      default: false,
-    },
-    isRead: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: ["pending","send","received","seen"],
+      default: "pending",
     },
   },
   {
@@ -34,3 +27,8 @@ const Message = mongoose.model(
 );
 
 export default Message;
+
+  // 'pending' is default value if status is not set from client side,
+  // 'seen' is set from client side when user see the message, 
+  //'read' is set from server side when user see the message, 
+  //'delivered' is set from server side when user see the message
