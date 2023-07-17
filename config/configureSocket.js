@@ -16,7 +16,7 @@ const configureSocket = (server) => {
     
             if(!users.some(user => user.userId === userData.id)){
                 users.push({userId: userData.id, socketId: socket.id});
-                console.log("New User is here",users);
+                //console.log("New User is here",users);
             }
             // console.log(socket.id);
     
@@ -71,7 +71,7 @@ const configureSocket = (server) => {
             }
         })
 
-        socket.on('messageRead', async(mId) => {
+        socket.on('messageSeen', async(mId) => {
             try {
                 const read=await Message.findByIdAndUpdate(mId,{status:"seen"}).populate('sender','name email').populate('chat')
                 io.emit('messageStatusUpdated',read)
