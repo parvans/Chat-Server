@@ -51,11 +51,11 @@ const configureSocket = (server) => {
             })
         })
 
+
         socket.on('messageSend', async(mId) => {
             try {
                 const send=await Message.findByIdAndUpdate(mId,{status:"send"}).populate('sender','name email').populate('chat')
-                io.emit('messageStatusUpdated',send)
-                
+                io.emit('messageStatusUpdated',send)    
             } catch (error) {
                 console.log(error);
             }
@@ -64,8 +64,7 @@ const configureSocket = (server) => {
         socket.on('messageReceived', async(mId) => {
             try {
                const receive= await Message.findByIdAndUpdate(mId,{status:"received"}).populate('sender','name email').populate('chat')
-                io.emit('messageStatusUpdated',receive)
-                
+                io.emit('messageStatusUpdated',receive)             
             } catch (error) {
                 console.log(error);
             }
@@ -74,6 +73,15 @@ const configureSocket = (server) => {
         socket.on('messageSeen', async(mId) => {
             try {
                 const read=await Message.findByIdAndUpdate(mId,{status:"seen"}).populate('sender','name email').populate('chat')
+                io.emit('messageStatusUpdated',read)
+            } catch (error) {
+                console.log(error);
+            }
+        })
+
+        socket.on('allMessageSeen', async(chatId) => {
+            try {
+                const read=await Message.updateMany({chat:chatId},{status:"seen"}).populate('sender','name email').populate('chat')
                 io.emit('messageStatusUpdated',read)
             } catch (error) {
                 console.log(error);
