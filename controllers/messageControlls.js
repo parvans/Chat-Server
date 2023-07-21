@@ -14,11 +14,11 @@ export const sendMessage = async (req, res) => {
     }
     try {
         var message=await Message.create(newMessage)
-        message=await message.populate('sender','name email')
+        message=await message.populate('sender','name email image')
         message=await message.populate('chat')
         message=await User.populate(message,{
             path:'chat.users',
-            select:'name email'
+            select:'name email image'
         })
         await Chat.findByIdAndUpdate(chatId,{latestMessage:message})
         return res.status(201).json({data:message})
@@ -29,7 +29,7 @@ export const sendMessage = async (req, res) => {
 export const allMessage = async (req, res) => {
     const {chatId}=req.params
     try {
-        const message=await Message.find({chat:chatId}).populate('sender','name email').populate('chat')
+        const message=await Message.find({chat:chatId}).populate('sender','name email image').populate('chat')
         return res.status(200).json({data:message})
     } catch (error) {
         return res.status(500).json({message:error})
@@ -44,7 +44,7 @@ export const editMessage = async (req, res) => {
             return res.status(404).json({message:'Message Not Found'})
         }
         const edit=await Message.findByIdAndUpdate(id,{$set:req.body},{new:true})
-        .populate('sender','name email').populate('chat')
+        .populate('sender','name email image').populate('chat')
         return res.status(200).json({data:edit})
     } catch (error) {
         return res.status(500).json({message:error})
