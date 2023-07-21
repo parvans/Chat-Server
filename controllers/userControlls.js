@@ -156,3 +156,29 @@ export const userEdit = async (req, res) => {
         return res.status(400).json({message:error.message})
     }
 }
+
+// export const userProfileUpdate = async (req, res) => {
+//     const userId = req.user.id
+//     const image=req.body.data
+//     try {
+//         const userExist = await User.findById(userId)
+//         if (!userExist) return res.status(400).json({ message: "User does not exist" })
+//         const deleteOldImage=await cloud.uploader.destroy(userExist.image)
+//         const uploadResponse = await cloud.uploader.upload(image,{upload_preset:"chatbot"})
+//         await User.findByIdAndUpdate({ _id: userId },{ $set: {image:uploadResponse.secure_url} },{ new: true })
+//         res.status(200).json({ message: "User updated successfully" })
+//     } catch (error) {
+//         return res.status(400).json({message:error.message})
+//     }
+// }
+
+export const userProfile = async (req, res) => {
+    const userId = req.user.id
+    try {
+        const userExist = await User.findById(userId)
+        if (!userExist) return res.status(400).json({ message: "User does not exist" })
+        res.status(200).json({ data: userExist })
+    } catch (error) {
+        return res.status(400).json({message:error.message})
+    }
+}
