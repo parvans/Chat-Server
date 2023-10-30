@@ -15,7 +15,7 @@ export const accessthechat = async (req, res) => {
     isTheChat=await User.populate(isTheChat,
         {
             path:'latestMessage.sender',
-            select:'name email',
+            select:'name email image',
         })
         
         if(isTheChat.length>0){
@@ -45,7 +45,7 @@ export const fetchChat = async (req, res) => {
         .then(async(result)=>{
             result=await User.populate(result,{
                 path:'latestMessage.sender',
-                select:'name email',
+                select:'name email image',
 
             })
             res.status(200).json({data:result})
@@ -63,7 +63,7 @@ export const createGroupChat=async(req,res)=>{
     } 
     var theUsers=JSON.parse(users)
     if(theUsers.length<=2){
-        return res.status(400).json({message:'More than 2 users are required for a group chat'})
+        return res.status(400).json({message:'More than 2 users are required'})
     }
 
     theUsers.push(req.user.id)
@@ -110,6 +110,10 @@ export const groupAddMember=async(req,res)=>{
         if(userExist){
             return res.status(400).json({message:'User Already Exist'})
         }
+
+        // if(userExist?.groupAdmin?._id!==req.user.id){
+        //     return res.status(400).json({message:'Only Admin Can Add Member'})
+        // }
     
         const add=await Chat.findByIdAndUpdate(chatId,{$push:{users:userId}},{new:true})
         .populate('users','-password')
@@ -120,7 +124,7 @@ export const groupAddMember=async(req,res)=>{
             return res.status(200).json({data:add})
         }
     } catch (error) {
-        return res.status(500).json({message:error})
+        return res.status(500).json({message:error.message})
     }
 }
 
@@ -134,6 +138,10 @@ export const groupRemoveMember=async(req,res)=>{
         const remOve=await Chat.findByIdAndUpdate(chatId,{$pull:{users:userId}},{new:true})
         .populate('users','-password')
         .populate('groupAdmin','-password')
+        if(userExist.groupAdmin==userId){
+            remOve.groupAdmin=remOve.users[0]
+            await remOve.save()
+        }
         if(!remOve){
             return res.status(404).json({message:'Chat Not Found'})
         }else{
