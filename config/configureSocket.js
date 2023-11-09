@@ -5,7 +5,7 @@ const configureSocket = (server) => {
     const io = new Server(server, {
         pingTimeout: 60000,
         cors: {
-            origin: 'http://192.168.1.66:3000',
+            origin: 'http://192.168.1.79:3000',
         }
     });
     

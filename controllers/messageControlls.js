@@ -35,7 +35,6 @@ export const allMessage = async (req, res) => {
         return res.status(500).json({message:error})
     }
 }
-
 export const editMessage = async (req, res) => {
     const {id}=req.params
     try {
