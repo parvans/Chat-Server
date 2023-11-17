@@ -3,13 +3,13 @@ import Message from "../models/Message.js"
 import User from "../models/User.js"
 
 export const sendMessage = async (req, res) => {
-    const {chatId,cotent}=req.body
-    if(!chatId||!cotent){
+    const {chatId,content}=req.body
+    if(!chatId||!content){
         return res.status(400).json({message:'All Fields Are Required'})
     } 
     var newMessage={
         sender:req.user.id,
-        content:cotent,
+        content:content,
         chat:chatId
     }
     try {
