@@ -11,10 +11,10 @@ const User= mongoose.model(
             type:String,
             required:true,
         },
-        image:{
-            type:String,
-            default:"https://res.cloudinary.com/dgupyenrw/image/upload/v1689912117/chatbot/428-4287240_no-avatar-user-circle-icon-png_yvvvo1.png"
-        },
+        // image:{
+        //     type:String,
+        //     default:"https://res.cloudinary.com/dgupyenrw/image/upload/v1689912117/chatbot/428-4287240_no-avatar-user-circle-icon-png_yvvvo1.png"
+        // },
         password:{
             type:String,
             required:true

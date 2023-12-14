@@ -6,17 +6,17 @@ import cloud from "../utils/cloudinary.js";
 dotenv.config()
 export const register = async (req, res) => {
     const { name, email, password } = req.body;
-    const image=req.body.data
+    // const image=req.body.data
     try {
         const exUser=await User.findOne({email})
         if(exUser) return res.status(400).json({message:'user already exists'})
         const hash=await bcrypt.hash(password,10)
-        const uploadResponse = await cloud.uploader.upload(image,{upload_preset:"chatbot"})
+        // const uploadResponse = await cloud.uploader.upload(image,{upload_preset:"chatbot"})
         const newUser = new User({
             name,
             email,
             password:hash,
-            image:uploadResponse.secure_url,
+            // image:uploadResponse.secure_url,
         })
         await newUser.save()
         res.status(201).json({message:'user created successfully'})

@@ -15,7 +15,7 @@ export const accessthechat = async (req, res) => {
     isTheChat=await User.populate(isTheChat,
         {
             path:'latestMessage.sender',
-            select:'name email image',
+            select:'name email ',
         })
         
         if(isTheChat.length>0){
@@ -45,7 +45,7 @@ export const fetchChat = async (req, res) => {
         .then(async(result)=>{
             result=await User.populate(result,{
                 path:'latestMessage.sender',
-                select:'name email image',
+                select:'name email',
 
             })
             res.status(200).json({data:result})
