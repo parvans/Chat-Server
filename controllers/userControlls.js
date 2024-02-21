@@ -3,8 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import cloud from "../utils/cloudinary.js";
-import { ReE, firstNameSecondNameCapForReg, isCurrectPassword, isEmail, isEmpty, isNull, too } from "../services/util.service.js";
+import { ReE, ReS, firstNameSecondNameCapForReg, isCurrectPassword, isEmail, isEmpty, isNull, too } from "../services/util.service.js";
 import HttpStatus from 'http-status';
+import { ISVALIDID } from "../services/validation.js";
 dotenv.config()
 export const register = async (req, res) => {
     let body=req.body;
@@ -73,7 +74,7 @@ export const register = async (req, res) => {
         return ReE(res, { message: `Something went wrong ${err}!` }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     await userCreate.save();
-    return ReE(res, { message: "User created successfully!." }, HttpStatus.CREATED);
+    return ReS(res, { message: "User created successfully!." }, HttpStatus.OK);
 
 
     // const { name, email, password } = req.body;
@@ -106,6 +107,38 @@ export const login = async (req, res) => {
     }
     body.email = String(body.email).toLowerCase();
     const {email,password} = body;
+
+    let checkUser,optionsUser = {
+        email: email
+    };
+    [err, checkUser] = await too(User.findOne(optionsUser));
+
+    if(err){
+        return ReE(res, err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    if(isNull(checkUser)){
+        return ReE(res, { message: "User does not exist!." }, HttpStatus.BAD_REQUEST);
+
+    }
+
+    let matchPassword
+    [err, matchPassword] = await too(bcrypt.compare(password,checkUser.password));
+    if(err){
+        return ReE(res, err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    if(!matchPassword){
+        return ReE(res, { message: "Password does not match!." }, HttpStatus.BAD_REQUEST);
+    }
+
+    let token = jwt.sign({id:checkUser._id},process.env.JWT_SECRET,{expiresIn:'30d'});
+
+    if(isNull(token)){
+        return ReE(res, { message: "Something went wrong to genrate token!." }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return ReS(res, { message: `Welcome ${checkUser.name}`, token: token }, HttpStatus.OK);
+
     // const { email, password } = req.body;
     // try {
     //     const theUser=await User.findOne({email})
@@ -113,27 +146,44 @@ export const login = async (req, res) => {
     //     const match=await bcrypt.compare(password,theUser.password)
     //     if(!match) return res.status(400).json({message:'incorrect password'})
     //     const token=jwt.sign({id:theUser._id},process.env.JWT_SECRET,{expiresIn:'30d'})
-    //     res.header("auth-token", token).json({ message: "login successfully", token: token });
+        // res.header("auth-token", token).json({ message: "login successfully", token: token });
     // } catch (error) {
     //     res.status(500).json({message:error.message})
     // }
 }
 
 export const getUser = async (req, res) => {
-    const keyword = req.query.search
-    ? {
-        $or: [
-            { name: { $regex: req.query.search, $options: 'i' } },
-            { email: { $regex: req.query.search, $options: 'i' } },
-        ]
-    }: {};
+    let err;
+    let user = req.user.id;
+    let search = req.query.search;
 
-    try {
-        const findUser = await User.find(keyword).find({ _id: { $ne: req.user.id } }).select('-password')
-        res.status(200).json({ data: findUser })
-    } catch (error) {
-        res.status(500).json({message:error.message})
+    let getUsers,optionsUser = search ?{
+        $or:[
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },       
+        ]
+    } : {};
+    [err, getUsers] = await too(User.find(optionsUser).select('-password').where('_id').ne(user));
+
+    if(err){
+        return ReE(res, err, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    return ReS(res, { data: getUsers }, HttpStatus.OK);
+    // const keyword = req.query.search
+    // ? {
+    //     $or: [
+    //         { name: { $regex: req.query.search, $options: 'i' } },
+    //         { email: { $regex: req.query.search, $options: 'i' } },
+    //     ]
+    // }: {};
+
+    // try {
+    //     const findUser = await User.find(keyword).find({ _id: { $ne: req.user.id } }).select('-password')
+    //     res.status(200).json({ data: findUser })
+    // } catch (error) {
+    //     res.status(500).json({message:error.message})
+    // }
 }
 
 export const verifyEmail = async (req, res) => {
@@ -253,12 +303,38 @@ export const userEdit = async (req, res) => {
 // }
 
 export const userProfile = async (req, res) => {
-    const userId = req.user.id
-    try {
-        const userExist = await User.findById(userId)
-        if (!userExist) return res.status(400).json({ message: "User does not exist" })
-        res.status(200).json({ data: userExist })
-    } catch (error) {
-        return res.status(400).json({message:error.message})
+    let err;
+    let user = req.user.id;
+    if(isNull(user)){
+        return ReE(res, { message: "Something went wrong to get user profile!." }, HttpStatus.BAD_REQUEST);
     }
+
+    if(!ISVALIDID(user)){
+        return ReE(res, { message: "Something went wrong to get user profile!." }, HttpStatus.BAD_REQUEST);
+    }
+
+    let getUser,optionsUser = {
+        _id: user
+    };
+
+    [err, getUser] = await too(User.findOne(optionsUser).select('-password'));
+
+    if(err){
+        return ReE(res, err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    if(isNull(getUser)){
+        return ReE(res, { message: "User does not exist!." }, HttpStatus.BAD_REQUEST);
+    }
+
+    return ReS(res,{message:'User profile',data:getUser},HttpStatus.OK)
+
+    // const userId = req.user.id
+    // try {
+    //     const userExist = await User.findById(userId)
+    //     if (!userExist) return res.status(400).json({ message: "User does not exist" })
+    //     res.status(200).json({ data: userExist })
+    // } catch (error) {
+    //     return res.status(400).json({message:error.message})
+    // }
 }
