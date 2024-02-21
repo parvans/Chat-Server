@@ -1,6 +1,6 @@
 import { to } from 'await-to-js';
 
-export const to = async (promise) => {
+export const too = async (promise) => {
   let err, res;
 
   [err, res] = await to(promise);
@@ -84,6 +84,22 @@ export const isEmail = (email) => {
   const reg = /^[a-z0-9]+[.]?[a-z0-9]{0,30}@[a-z]+(\.(in|co|com|net)+)$/;
 
   if (reg.test(email)) {
+
+    return true;
+
+  } else {
+
+    return false;
+
+  }
+
+};
+
+export const isCurrectPassword = (password) => {
+  
+  const reg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])/;
+
+  if (reg.test(password)) {
 
     return true;
 
