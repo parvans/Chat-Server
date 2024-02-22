@@ -1,16 +1,14 @@
 import { Server } from "socket.io";
 import Message from "../models/Message.js";
-let users=[];
 const configureSocket = (server) => {
+    let users=[];
     const io = new Server(server, {
         pingTimeout: 60000,
-        cors: {
-            origin: 'http://localhost:3001',
-        }
+        cors: 'http://localhost:3000',
     });
     
     io.on('connection', (socket) => {
-        console.log('Socket connected 🔥');
+        console.log('Socket connected🔥',socket.id);
         socket.on('setup',(userData)=>{
             socket.join(userData.id);
     
