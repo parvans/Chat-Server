@@ -1,12 +1,12 @@
 import User from "../models/User.js";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 import cloud from "../utils/cloudinary.js";
 import { ReE, ReS, firstNameSecondNameCapForReg, isCurrectPassword, isEmail, isEmpty, isNull, too } from "../services/util.service.js";
 import HttpStatus from 'http-status';
 import { ISVALIDID } from "../services/validation.js";
-dotenv.config()
+import CONFIG from '../config/configData.js';
+
 export const register = async (req, res) => {
     let body=req.body;
     let err
@@ -131,7 +131,7 @@ export const login = async (req, res) => {
         return ReE(res, { message: "Password does not match!." }, HttpStatus.BAD_REQUEST);
     }
 
-    let token = jwt.sign({id:checkUser._id},process.env.JWT_SECRET,{expiresIn:'30d'});
+    let token = jwt.sign({id:checkUser._id},CONFIG.jwt_secret,{expiresIn:CONFIG.jwt_expiration});
 
     if(isNull(token)){
         return ReE(res, { message: "Something went wrong to genrate token!." }, HttpStatus.INTERNAL_SERVER_ERROR);

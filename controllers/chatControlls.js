@@ -1,6 +1,9 @@
 import Chat from "../models/Chat.js"
+import Message from "../models/Message.js"
 import User from "../models/User.js"
-
+import { ReE, ReS, isNull, too } from "../services/util.service.js"
+import { ISVALIDID } from "../services/validation.js"
+import HttpStatus from 'http-status'
 export const accessthechat = async (req, res) => {
     const {userId}=req.body
     if(!userId) return res.status(400).json({message:'user id is required'})
@@ -37,22 +40,100 @@ export const accessthechat = async (req, res) => {
 }
 
 export const fetchChat = async (req, res) => {
-    try {
-        Chat.find({users:{$elemMatch:{$eq:req.user.id}}})
-        .populate('users','-password')
-        .populate('groupAdmin','-password')
-        .populate('latestMessage').sort({updatedAt:-1})
-        .then(async(result)=>{
-            result=await User.populate(result,{
-                path:'latestMessage.sender',
-                select:'name email',
+    let err;
+    let user = req.user.id;
+    if(isNull(user)){
 
-            })
-            res.status(200).json({data:result})
-        })
-    } catch (error) {
-        res.status(500).json({message:error.message})
+        return ReE(res, {message: "Please provide user"}, HttpStatus.BAD_REQUEST);
+
     }
+    if(!ISVALIDID(user)){
+
+        return ReE(res, {message: "Please provide valid user"}, HttpStatus.BAD_REQUEST);
+
+    }
+    let fetchChats,optionsFetch = {
+        users: {
+            $elemMatch: {
+                $eq: user
+            }
+        }
+    };
+    [err, fetchChats] = await too(Chat.find(optionsFetch)
+    .populate('users','-password')
+    .populate('groupAdmin','-password')
+    .populate('latestMessage').sort({updatedAt:-1}));
+
+    if(err){
+            
+        return ReE(res, err, HttpStatus.INTERNAL_SERVER_ERROR);
+    
+    }
+
+    if(isNull(fetchChats)){
+
+        return ReE(res,{ message: `Chat not found!.` },HttpStatus.NOT_FOUND);
+
+    }
+
+    fetchChats = await User.populate(fetchChats,{
+        path:'latestMessage.sender',
+        select:'name email',
+    });
+
+
+    for (let index = 0; index < fetchChats.length; index++) {
+        const element = fetchChats[index];
+        //unReadMsgCount for login user
+        let messgCount = 0;
+        let unreadCount,optionsCout = {
+            chat: element._id,
+            sender: {
+                $ne: user
+            },
+
+        };
+
+        [err, unreadCount] = await too(Message.find(optionsCout));
+        console.log(unreadCount);
+
+        // if(!err && !isNull(unreadCount)){
+        //     unreadCount.map((item)=>{
+        //         if(isNull(item.readBy)){
+        //             messgCount++;
+        //         }else{
+        //             item.readBy.some((u)=>u._id===user)?null:messgCount++;
+        //         }
+        //     })
+
+        //     element.set
+        // }
+
+        messgCount = 0;
+
+
+        
+    }
+
+    return ReS(res, {message: "Chat fetch successfully", data: fetchChats}, HttpStatus.OK);
+
+
+    // try {
+    //     Chat.find({users:{$elemMatch:{$eq:req.user.id}}})
+    //     .populate('users','-password')
+    //     .populate('groupAdmin','-password')
+    //     .populate('latestMessage').sort({updatedAt:-1})
+    //     .then(async(result)=>{
+    //         result=await User.populate(result,{
+    //             path:'latestMessage.sender',
+    //             select:'name email',
+
+    //         })
+    //         res.status(200).json({data:result})
+    //     })
+    // } catch (error) {
+    //     res.status(500).json({message:error.message})
+    // }
 }
 
 export const createGroupChat=async(req,res)=>{
