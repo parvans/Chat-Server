@@ -81,9 +81,9 @@ export const fetchChat = async (req, res) => {
         select:'name email',
     });
 
-
+    let fetchArr = [];
     for (let index = 0; index < fetchChats.length; index++) {
-        const element = fetchChats[index];
+        let element = fetchChats[index];
         //unReadMsgCount for login user
         let messgCount = 0;
         let unreadCount,optionsCout = {
@@ -95,27 +95,34 @@ export const fetchChat = async (req, res) => {
         };
 
         [err, unreadCount] = await too(Message.find(optionsCout));
-        console.log(unreadCount);
 
-        // if(!err && !isNull(unreadCount)){
-        //     unreadCount.map((item)=>{
-        //         if(isNull(item.readBy)){
-        //             messgCount++;
-        //         }else{
-        //             item.readBy.some((u)=>u._id===user)?null:messgCount++;
-        //         }
-        //     })
+        // console.log('Before:',element);
+        // console.log('Error:',err);
+        // console.log('Unread:',unreadCount);
 
-        //     element.set
-        // }
+        if(!err && !isNull(unreadCount)){
+            unreadCount.map((item)=>{
+                if(isNull(item.readBy)){
+                    messgCount++;
+                }else{
+                    item.readBy.some((u)=>u._id===user)?null:messgCount++;
+                }
+            })
 
+            element = element.toObject();
+            element.unReadMsgCount = messgCount;
+
+            fetchArr.push(element);
+            
+        }
+        
         messgCount = 0;
-
-
         
     }
+    console.log(fetchChats);
 
-    return ReS(res, {message: "Chat fetch successfully", data: fetchChats}, HttpStatus.OK);
+
+    return ReS(res, {message: "Chat fetch successfully", data: fetchArr}, HttpStatus.OK);
 
 
     // try {

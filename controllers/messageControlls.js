@@ -2,9 +2,9 @@ import Chat from "../models/Chat.js"
 import Message from "../models/Message.js"
 import User from "../models/User.js"
 import { ReE, ReS, isEmpty, isNull, too } from "../services/util.service.js";
-import HttpStatus from 'http-status';
 import { ISVALIDID } from "../services/validation.js";
 import { encryptData } from "../services/encryptDecrypt.js";
+import HttpStatus from "http-status";
 export const sendMessage = async (req, res) => {
     let err;
     let body = req.body;
@@ -169,6 +169,174 @@ export const allMessage = async (req, res) => {
     } catch (error) {
         return res.status(500).json({message:error})
     }
+}
+export const readMessage = async (req, res) => {
+    let err;
+    let user = req.user.id;
+    let body = req.body;
+    let readby = {};
+    let fields = ["chatId", "messgId"];
+  
+    let inVaildFields = fields.filter((x) => isNull(body[x]));
+  
+    if (!isEmpty(inVaildFields)) {
+  
+      return ReE(res,{ message: `Please enter required fields ${inVaildFields}!.` },HttpStatus.BAD_REQUEST);
+  
+    }
+  
+    const { chatId, messgId } = body;
+  
+    if (isNull(user)) {
+  
+      return ReE(res,{ message: `Please provide user!.` },HttpStatus.BAD_REQUEST);
+  
+    }
+  
+    if (!ISVALIDID(user)) {
+  
+      return ReE(res,{ message: `Please provide valid user!.` },HttpStatus.BAD_REQUEST);
+      
+    }
+
+    let checkUser,optionsForUser = {
+        _id: user
+    };
+    
+    [err, checkUser] = await too(User.findOne(optionsForUser).select('-password'));
+
+    if (err) {
+
+        return ReE(res, err, HttpStatus.BAD_REQUEST);
+    
+    }
+    
+    if (isNull(checkUser)) {
+    
+        return ReE(res, { message: `User not found!.` }, HttpStatus.BAD_REQUEST);
+    
+    }
+
+    readby = {
+        _id: checkUser._id,
+        readAt: new Date()
+    };
+
+    if (isNull(chatId)) {
+
+        return ReE(res,{ message: `Please provide chat id  !.` },HttpStatus.BAD_REQUEST);
+    
+    }
+    
+    if (!ISVALIDID(chatId)) {
+    
+        return ReE(res,{ message: `Please provide valid chat id  !.` },HttpStatus.BAD_REQUEST);
+    
+    }
+
+    let checkChat,optionsForChat = {
+        _id: chatId,
+    };
+    
+    [err, checkChat] = await too(Chat.findOne(optionsForChat));
+
+    if (err) {
+
+        return ReE(res, err, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (isNull(checkChat)) {
+
+        return ReE(res, { message: `Chat not found!.` }, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (isNull(messgId)) {
+
+        return ReE(res,{ message: `Please provide message id !.` },HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (!ISVALIDID(messgId)) {
+
+        return ReE(res,{ message: `Please provide valid message id !.` },HttpStatus.BAD_REQUEST);
+
+    }
+
+    let checkMessage,optionsForMessage = {
+        _id: messgId,
+        chat_id: checkChat._id,
+    };
+
+    [err, checkMessage] = await too(Message.findOne(optionsForMessage));
+
+    if (err) {
+
+        return ReE(res, err, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (isNull(checkMessage)) {
+
+        return ReE(res, { message: `Message not found!.` }, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if(checkUser._id === checkMessage.sender){
+
+        return ReE(res,{ message: `You can't read your own message!.` },HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (!isNull(checkMessage.readBy) && !isEmpty(checkMessage.readBy)) {
+
+        let checkUserRead = checkMessage.readBy?.filter((x) => x._id === checkUser._id);
+    
+        if (!isEmpty(checkUserRead)) {
+    
+          return ReE(res,{ message: `Message already read!.` },HttpStatus.BAD_REQUEST);
+    
+        }
+    
+    }
+
+    let updateMessage,optionsForUpdateMesg = {
+        _id: checkMessage._id,
+    };
+
+    let readArray = [];
+    if (!isNull(checkMessage.readBy) && !isEmpty(checkMessage.readBy)) {
+
+    readArray = [...checkMessage.readBy, readby];
+
+    } else {
+
+    readArray.push(readby);
+
+    }
+
+    [err, updateMessage] = await too(Message.findByIdAndUpdate(optionsForUpdateMesg,{$set:{readBy: readArray}},{new:true}));
+
+    if (err) {
+
+    return ReE(res, err, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (isNull(updateMessage)) {
+
+    return ReE(res,{ message: `Message not updated!.` },HttpStatus.BAD_REQUEST);
+
+    }
+    
+    return ReS(res,{ message: `Message read successfully!`},HttpStatus.OK);
+
+
+
+    
+    
+  
 }
 export const editMessage = async (req, res) => {
     const {id}=req.params
