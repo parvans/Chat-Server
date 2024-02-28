@@ -2,9 +2,19 @@ import { Server } from "socket.io";
 import Message from "../models/Message.js";
 const configureSocket = (server) => {
     let users=[];
+
+    let onlineUsers = [], onlineUserForSend = [];
+
+    const addNewUser = (userId, socketId) => {
+        !onlineUsers.some((user) => user.userId === userId ) && userId !== null && 
+        onlineUsers.push({ userId , socketId });
+        !onlineUserForSend.some((user) => user.userId === userId && user.socketId === socketId ) && userId !== null && 
+        onlineUserForSend.push({ userId , socketId });
+    };  
+
     const io = new Server(server, {
         pingTimeout: 60000,
-        cors: 'http://localhost:3000',
+        cors: 'http://localhost:3001',
     });
     
     io.on('connection', (socket) => {
@@ -12,16 +22,22 @@ const configureSocket = (server) => {
         socket.on('setup',(userData)=>{
             socket.join(userData.id);
     
-            if(!users.some(user => user.userId === userData.id)){
-                users.push({userId: userData.id, socketId: socket.id});
-                //console.log("New User is here",users);
-            }
+            // if(!users.some(user => user.userId === userData.id)){
+            //     users.push({userId: userData.id, socketId: socket.id});
+            //     //console.log("New User is here",users);
+            // }
             // console.log(socket.id);
     
-            io.emit('get-users',users);
+            // io.emit('get-users',users);
             socket.emit('connected')
         })
-    
+
+        socket.on("newUser",(user)=>{
+            if(user){
+                addNewUser(user, socket.id);
+            } 
+            io.emit("getUsers", onlineUsers);
+        })
         
     
         socket.on('join room', (room) => {
@@ -47,6 +63,32 @@ const configureSocket = (server) => {
                 if(user._id == newMessage.sender._id)return;
                 socket.in(user._id).emit('message received', newMessage); 
             })
+        })
+        
+        socket.on("readMessage",(recieve)=>{
+            try {
+                let chat = recieve.chat; 
+                if (!chat.users) return console.log("chat.users not defined");
+                chat.users.forEach((user) => { 
+                    if (user != recieve.sender) return;
+                    let founSocketId = users.filter((item)=>item.userId == user) 
+                    if(!founSocketId)  return;
+                    founSocketId.map((item)=>{
+                        // console.log(item.socketId);
+                        if(!item.socketId) return;
+                        io.to(item.socketId).emit("readMessageSender", recieve);   
+                    })
+                });
+                //multiple recevier login means update read message all
+                let getUsers = users.filter((item)=>recieve.loginUserId === item.userId)
+                if(!getUsers) return;
+                getUsers.map((item)=>{
+                    if(!item.socketId) return;
+                    io.to(item.socketId).emit("readMessageUser", recieve);   
+                })
+            } catch (error) {
+                console.log("error in new msg socket",error);
+            } 
         })
 
 

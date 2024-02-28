@@ -218,8 +218,8 @@ export const readMessage = async (req, res) => {
     }
 
     readby = {
-        _id: checkUser._id,
-        readAt: new Date()
+        user: checkUser._id,
+        // readAt: new Date()
     };
 
     if (isNull(chatId)) {
@@ -266,10 +266,11 @@ export const readMessage = async (req, res) => {
 
     let checkMessage,optionsForMessage = {
         _id: messgId,
-        chat_id: checkChat._id,
+        chat: checkChat._id,
     };
 
-    [err, checkMessage] = await too(Message.findOne(optionsForMessage));
+    [err, checkMessage] = await too(Message.findOne(optionsForMessage).populate('readBy','-password').populate('chat'));
+    
 
     if (err) {
 
@@ -283,15 +284,17 @@ export const readMessage = async (req, res) => {
 
     }
 
-    if(checkUser._id === checkMessage.sender){
+    if(checkUser._id.toString() === checkMessage.sender.toString()){
 
         return ReE(res,{ message: `You can't read your own message!.` },HttpStatus.BAD_REQUEST);
 
     }
 
+    // console.log(checkMessage);
     if (!isNull(checkMessage.readBy) && !isEmpty(checkMessage.readBy)) {
 
-        let checkUserRead = checkMessage.readBy?.filter((x) => x._id === checkUser._id);
+        let checkUserRead = checkMessage.readBy?.filter((x) => x.user !== checkUser._id);
+        // console.log(checkUserRead);
     
         if (!isEmpty(checkUserRead)) {
     
@@ -330,7 +333,7 @@ export const readMessage = async (req, res) => {
 
     }
     
-    return ReS(res,{ message: `Message read successfully!`},HttpStatus.OK);
+    return ReS(res,{ message: `Message read successfully!`,data:checkMessage },HttpStatus.OK);
 
 
 

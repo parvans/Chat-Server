@@ -96,16 +96,14 @@ export const fetchChat = async (req, res) => {
 
         [err, unreadCount] = await too(Message.find(optionsCout));
 
-        // console.log('Before:',element);
-        // console.log('Error:',err);
-        // console.log('Unread:',unreadCount);
-
         if(!err && !isNull(unreadCount)){
+            // console.log(unreadCount);
             unreadCount.map((item)=>{
-                if(isNull(item.readBy)){
+                if(item.readBy.length===0){
                     messgCount++;
                 }else{
-                    item.readBy.some((u)=>u._id===user)?null:messgCount++;
+                    
+                    item.readBy.some((u)=>u.user.toString()===user.toString())?null:messgCount++;
                 }
             })
 
@@ -119,7 +117,7 @@ export const fetchChat = async (req, res) => {
         messgCount = 0;
         
     }
-    console.log(fetchChats);
+    // console.log(fetchChats);
 
 
     return ReS(res, {message: "Chat fetch successfully", data: fetchArr}, HttpStatus.OK);

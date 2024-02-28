@@ -17,9 +17,15 @@ const Message = mongoose.model(
     },
     readBy: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
+        user:{
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        readAt: {
+          type: Date,
+          default: Date.now,
+        }
+      }
     ],
     status: {
       type: String,
