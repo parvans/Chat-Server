@@ -237,3 +237,104 @@ export const groupRemoveMember=async(req,res)=>{
         return res.status(500).json({message:error})   
     }
 }
+
+export const deleteAllMessages = async (req, res) => {
+    let err;
+    let user = req.user.id;
+
+    if(isNull(user)){
+
+        return ReE(res, {message: "Please provide user"}, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if(!ISVALIDID(user)){
+
+        return ReE(res, {message: "Please provide valid user"}, HttpStatus.BAD_REQUEST);
+
+    }
+
+    let checkUser,optionUser = {
+        _id: user
+    };
+
+    [err,checkUser] = await too(User.findOne(optionUser));
+
+    if(err){
+
+        return ReE(res, err , HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
+
+    if(isNull(checkUser)){
+
+        return ReE(res, {message: "User not found"}, HttpStatus.NOT_FOUND);
+
+    }
+
+    let getAllChats,optionChat = {
+        users: {
+            $elemMatch: {
+                $eq: user
+            }
+        }
+    };
+
+    [err,getAllChats] = await too(Chat.find(optionChat));
+
+    
+    if(err){
+
+        return ReE(res, err , HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
+
+    if(isNull(getAllChats)){
+
+        return ReE(res, {message: "Chats not found"}, HttpStatus.NOT_FOUND);
+
+    }
+
+    // this is to remove all chat's lastmessage
+
+    for (let index = 0; index < getAllChats.length; index++) {
+        let element = getAllChats[index];
+        let updateChat,optionChat = {
+           _id: element._id
+        };
+
+        [err,updateChat] = await too(Chat.findByIdAndUpdate(optionChat,{
+            latestMessage: null
+        }));
+
+        if(err){
+
+            return ReE(res, err , HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+
+        if(isNull(updateChat)){
+
+            return ReE(res, {message: "Chat not found"}, HttpStatus.NOT_FOUND);
+
+        }
+
+        //delete all chat's messages
+
+        let deleteMessages,optionMessages = {
+            chat: element._id
+        };
+
+        [err,deleteMessages] = await too(Message.deleteMany(optionMessages));
+
+        if(err){
+
+            return ReE(res, err , HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+
+    }
+
+    return ReS(res, {message: "All messages deleted successfully"}, HttpStatus.OK);
+
+}

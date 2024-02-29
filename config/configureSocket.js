@@ -20,7 +20,7 @@ const configureSocket = (server) => {
     io.on('connection', (socket) => {
         console.log('Socket connected🔥',socket.id);
         socket.on('setup',(userData)=>{
-            socket.join(userData.id);
+            socket.join(userData);
     
             // if(!users.some(user => user.userId === userData.id)){
             //     users.push({userId: userData.id, socketId: socket.id});
@@ -42,6 +42,7 @@ const configureSocket = (server) => {
     
         socket.on('join room', (room) => {
             socket.join(room)
+            // console.log("users",onlineUsers);
             console.log('User Joined Room :',room);
         });
     
@@ -68,24 +69,28 @@ const configureSocket = (server) => {
         socket.on("readMessage",(recieve)=>{
             try {
                 let chat = recieve.chat; 
+                // console.log("chat",chat);
+                // console.log("recieve",recieve);
                 if (!chat.users) return console.log("chat.users not defined");
-                chat.users.forEach((user) => { 
-                    if (user != recieve.sender) return;
-                    let founSocketId = users.filter((item)=>item.userId == user) 
+                console.log(onlineUsers);
+                chat.users.map((user) => { 
+                    if (user != recieve.sender) return;;
+                    let founSocketId = onlineUsers.filter((item)=>item.userId == user) 
+                    console.log("founSocketId",founSocketId);
                     if(!founSocketId)  return;
                     founSocketId.map((item)=>{
-                        // console.log(item.socketId);
+                        console.log(item.socketId);
                         if(!item.socketId) return;
-                        io.to(item.socketId).emit("readMessageSender", recieve);   
+                        io.emit("readMessageSender", recieve);   
                     })
                 });
                 //multiple recevier login means update read message all
-                let getUsers = users.filter((item)=>recieve.loginUserId === item.userId)
-                if(!getUsers) return;
-                getUsers.map((item)=>{
-                    if(!item.socketId) return;
-                    io.to(item.socketId).emit("readMessageUser", recieve);   
-                })
+                // let getUsers = onlineUsers.filter((item)=>recieve.loginUserId === item.userId)
+                // if(!getUsers) return;
+                // getUsers.map((item)=>{
+                //     if(!item.socketId) return;
+                //     io.to(item.socketId).emit("readMessageUser", recieve);   
+                // })
             } catch (error) {
                 console.log("error in new msg socket",error);
             } 
