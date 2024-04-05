@@ -1,0 +1,50 @@
+[{
+  "_id": {
+    "$oid": "65dc5f780913bba7832a1451"
+  },
+  "chatName": "sender",
+  "isGroupChat": false,
+  "users": [
+    {
+      "$oid": "65d6f161eb558894e93794d3"
+    },
+    {
+      "$oid": "65d6f17feb558894e93794d8"
+    }
+  ],
+  "createdAt": {
+    "$date": "2024-02-26T09:52:56.052Z"
+  },
+  "updatedAt": {
+    "$date": "2024-03-04T09:58:44.489Z"
+  },
+  "__v": 0,
+  "latestMessage": {
+    "$oid": "65e59b54c6dd17503b1724a4"
+  }
+},
+{
+  "_id": {
+    "$oid": "65ded346a0dce589c8ffde20"
+  },
+  "chatName": "sender",
+  "isGroupChat": false,
+  "users": [
+    {
+      "$oid": "65d6f161eb558894e93794d3"
+    },
+    {
+      "$oid": "65d8169a6dfaee2d5265ea08"
+    }
+  ],
+  "createdAt": {
+    "$date": "2024-02-28T06:31:34.406Z"
+  },
+  "updatedAt": {
+    "$date": "2024-03-04T07:01:02.620Z"
+  },
+  "__v": 0,
+  "latestMessage": {
+    "$oid": "65e571aec6dd17503b16b69d"
+  }
+}]

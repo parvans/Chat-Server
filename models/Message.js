@@ -15,6 +15,18 @@ const Message = mongoose.model(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chat",
     },
+    readBy: [
+      {
+        user:{
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        readAt: {
+          type: Date,
+          default: Date.now,
+        }
+      }
+    ],
     status: {
       type: String,
       enum: ["pending","send","received","seen"],
