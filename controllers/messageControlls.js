@@ -355,3 +355,91 @@ export const editMessage = async (req, res) => {
         return res.status(500).json({message:error})
     }
 }
+
+export const getMessageStatus = async (req, res) => {
+    let err;
+    let user = req.user.id;
+    let {chatId} = req.params;
+  
+    // const { chatId } = body;
+  
+    if (isNull(user)) {
+  
+      return ReE(res,{ message: `Please provide user!.` },HttpStatus.BAD_REQUEST);
+  
+    }
+  
+    if (!ISVALIDID(user)) {
+  
+      return ReE(res,{ message: `Please provide valid user!.` },HttpStatus.BAD_REQUEST);
+      
+    }
+
+    let checkUser,optionsForUser = {
+        _id: user
+    };
+    
+    [err, checkUser] = await too(User.findOne(optionsForUser).select('-password'));
+
+    if (err) {
+
+        return ReE(res, err, HttpStatus.BAD_REQUEST);
+    
+    }
+    
+    if (isNull(checkUser)) {
+    
+        return ReE(res, { message: `User not found!.` }, HttpStatus.BAD_REQUEST);
+    
+    }
+
+    if (isNull(chatId)) {
+
+        return ReE(res,{ message: `Please provide chat id  !.` },HttpStatus.BAD_REQUEST);
+    
+    }
+    
+    if (!ISVALIDID(chatId)) {
+    
+        return ReE(res,{ message: `Please provide valid chat id  !.` },HttpStatus.BAD_REQUEST);
+    
+    }
+
+    let checkChat,optionsForChat = {
+        _id: chatId,
+    };
+    
+    [err, checkChat] = await too(Chat.findOne(optionsForChat));
+
+    if (err) {
+
+        return ReE(res, err, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (isNull(checkChat)) {
+
+        return ReE(res, { message: `Chat not found!.` }, HttpStatus.BAD_REQUEST);
+
+    }
+
+    let checkMessage,optionsForMessage = {
+        _id:checkChat.latestMessage
+    };
+
+    [err, checkMessage] = await too(Message.findOne(optionsForMessage));
+
+    if (err) {
+
+        return ReE(res, err, HttpStatus.BAD_REQUEST);
+
+    }
+
+    if (isNull(checkMessage)) {
+
+        return ReE(res, { message: `Message not found!.` }, HttpStatus.BAD_REQUEST);
+
+    }
+
+    return ReS(res,{ message: `Message status!`,data:checkMessage.status },HttpStatus.OK);
+}
