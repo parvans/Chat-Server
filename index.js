@@ -7,6 +7,8 @@ import chatRoutes from './routes/chat.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import configureSocket from './config/configureSocket.js';
 import CONFIG from './config/configData.js';
+import colors from 'colors';
+
 const app = express();
 
 
